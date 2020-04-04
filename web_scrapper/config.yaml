@@ -10,5 +10,5 @@ news_sites:
     queries:
       homepage_article_links: '.headline a'
       article_body: '.article_body'
-      article_title: '.article_header h1'
+      article_title: '.article-header h1'
 
