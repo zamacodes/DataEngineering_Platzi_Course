@@ -3,8 +3,8 @@ logging.basicConfig(level=logging.INFO)
 import subprocess
 
 logger = logging.getLogger(__name__)
-# news_sites_uids = ['eluniversal','elpais']
-news_sites_uids = ['elpais']
+news_sites_uids = ['eluniversal','elpais']
+#news_sites_uids = ['elpais']
 
 def main():
     _extract()
