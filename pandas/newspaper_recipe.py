@@ -91,20 +91,36 @@ def _remove_new_lines_from_body(df):
 
 
 def _tokenize_column(df, column_name):
-    return (df
-            .dropna()
-            .apply(lambda row: nltk.word_tokenize(row[column_name]), axis='columns')
-            .apply(lambda tokens: list(filter(lambda token: token.isalpha(), tokens)))
-            .apply(lambda tokens: list(map(lambda token: token.lower(), tokens)))
-            .apply(lambda word_list: list(filter(lambda word: word not in stop_words, word_list)))
-            .apply(lambda valid_word_list: len(valid_word_list))
-            )
-def _tokenize_columns(df):
-    columns_Names = df.columns.values
-    for column in columns_Names:
-        df[f'n_tokens_{column}'] = _tokenize_column(df, column)
+    logger.info(f'Calculating valuable words in {column_name}')
+    n_tokens = (df
+        .dropna()
+        .apply(lambda row: nltk.word_tokenize(row[column_name]), axis='columns')
+        .apply(lambda tokens: list(filter(lambda token: token.isalpha(), tokens)))
+        .apply(lambda tokens: list(map(lambda token: token.lower(), tokens)))
+        .apply(lambda word_list: list(filter(lambda word: word not in stop_words, word_list)))
+        .apply(lambda valid_word_list: len(valid_word_list))
+        ) 
+    df[f'n_tokens_{column_name}'] = n_tokens
+    return df
+# def _tokenize_columns(df):
+#     columns_Names = df.columns.values
+#     for column in columns_Names:
+#         df[f'n_tokens_{column}'] = _tokenize_column(df, column)
+#     return df
+
+def _remove_duplicated_entries(df,column_name):
+    logger.info('Removing duplicate entries')
+    df.drop_duplicates(subset=[column_name], keep='first', inplace = True)
     return df
 
+def _drop_rows_with_missing_values(df):
+    logger.info('removing rows with missing values')
+    df.dropna()
+    return df
+def _save_data(df, filename):
+    cleaned_filename = f'cleaned_{filename}'
+    logger.info('Saving final file as {cleaned_filename}')
+    df.to_csv(cleaned_filename)
 
 def main(filename):
     logger.info('Starting cleaning process')
@@ -117,7 +133,12 @@ def main(filename):
     df = _fill_missing_titles(df)
     df = _generate_uids_for_rows(df)
     df = _remove_new_lines_from_body(df)
-    df = _tokenize_columns(df)
+    df = _tokenize_column(df,'title')
+    df = _tokenize_column(df, 'body')
+    #df = _tokenize_columns(df)
+    df = _remove_duplicated_entries(df, 'title')
+    df = _drop_rows_with_missing_values(df)
+    _save_data(df, filename)
     return df
 
 
@@ -127,5 +148,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     df = main(args.filename)
-    df.to_csv(r'pandas.csv', index = False)
-    print(df)
+    #print(df)
