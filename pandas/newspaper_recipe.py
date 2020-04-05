@@ -1,11 +1,20 @@
 import pandas as pd
 import argparse
+
 import logging
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 from  urllib.parse import urlparse
 import re
 import hashlib
-logger = logging.getLogger(__name__)
+
+import nltk
+from nltk.corpus import stopwords
+nltk.download('punkt')
+nltk.download('stopwords')
+stop_words = set(stopwords.words('spanish'))
+
 
 def _read_data(filename):
     logger.info(f'Reading file {filename}')
@@ -73,6 +82,27 @@ def _remove_new_lines_from_body(df):
                     
             )
     df['body'] = stripped_body
+
+    tag_regex = re.compile(r'.*googletag.*;') #/my-text
+    for _ in range(0,len(df['body'])):
+        df['body'][_] = re.sub(tag_regex, '', df['body'][_])
+    df['body']
+    return df
+
+
+def _tokenize_column(df, column_name):
+    return (df
+            .dropna()
+            .apply(lambda row: nltk.word_tokenize(row[column_name]), axis='columns')
+            .apply(lambda tokens: list(filter(lambda token: token.isalpha(), tokens)))
+            .apply(lambda tokens: list(map(lambda token: token.lower(), tokens)))
+            .apply(lambda word_list: list(filter(lambda word: word not in stop_words, word_list)))
+            .apply(lambda valid_word_list: len(valid_word_list))
+            )
+def _tokenize_columns(df):
+    columns_Names = df.columns.values
+    for column in columns_Names:
+        df[f'n_tokens_{column}'] = _tokenize_column(df, column)
     return df
 
 
@@ -87,7 +117,7 @@ def main(filename):
     df = _fill_missing_titles(df)
     df = _generate_uids_for_rows(df)
     df = _remove_new_lines_from_body(df)
-
+    df = _tokenize_columns(df)
     return df
 
 
@@ -97,4 +127,5 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     df = main(args.filename)
+    df.to_csv(r'pandas.csv', index = False)
     print(df)
