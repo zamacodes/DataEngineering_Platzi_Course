@@ -22,17 +22,17 @@ def _extract():
 def _transform():
     logger.info('Starting transformation process')
     for news_site_uid in news_sites_uids:
-        dirty_data_filename = f'{news_site_uid}_.csv'
-        clean_data_filename = f'clean_{dirty_data_filename}'
+        dirty_data_filename = f'{news_site_uid}.csv'
+        cleaned_data_filename = f'cleaned_{dirty_data_filename}'
         subprocess.run(['python', 'main.py', dirty_data_filename], cwd='./transform')
         subprocess.run(['rm', f'{dirty_data_filename}'], cwd='./transform')
-        subprocess.run(['cp', clean_data_filename, f'../load/{news_site_uid}.csv'], cwd = './transform')
+        subprocess.run(['cp', cleaned_data_filename, f'../load/{news_site_uid}.csv'], cwd = './transform')
 def _load():
     logger.info('Starting load process ')
     for news_site_uid in news_sites_uids:
-        clean_data_filename = f'{news_site_uid}.csv'
-        subprocess.run(['python', 'main.py', clean_data_filename], cwd='./load')
-        subprocess.run(['rm', '{clean_data_filename}'], cwd='./load')
+        cleaned_data_filename = f'{news_site_uid}.csv'
+        subprocess.run(['python', 'main.py', cleaned_data_filename], cwd='./load')
+        subprocess.run(['rm', f'{cleaned_data_filename}'], cwd='./load')
 
 
 if __name__ == '__main__':

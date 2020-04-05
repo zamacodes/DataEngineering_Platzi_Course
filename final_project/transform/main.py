@@ -119,7 +119,7 @@ def _drop_rows_with_missing_values(df):
     return df
 def _save_data(df, filename):
     cleaned_filename = f'cleaned_{filename}'
-    logger.info('Saving final file as {cleaned_filename}')
+    logger.info(f'Saving final file as {cleaned_filename}')
     df.to_csv(cleaned_filename)
 
 def main(filename):
